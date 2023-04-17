@@ -1,0 +1,157 @@
+name: podman
+version: '4.4.4'
+summary: Manage pods, containers and container images
+description: |
+  `podman` is a tool for managing Pods, Containers, and Container Images
+  in multiple formats including Docker/OSI images. It exposes the same
+  command line interface as Docker, but runs containers unprivileged by
+  default.
+license: Apache-2.0
+
+base: core22
+confinement: devmode
+
+layout:
+  /etc/containers:
+    bind: $SNAP_DATA/etc/containers
+  /var/lib/containers:
+    bind: $SNAP_DATA/var/lib/containers
+  /var/cache/containers:
+    bind: $SNAP_DATA/var/cache/containers
+
+apps:
+  podman:
+    command: bin/podman
+    environment:
+      LD_LIBRARY_PATH: ${SNAP}/lib/:${SNAP}/lib/${CRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib/:${SNAP}/usr/lib/${CRAFT_ARCH_TRIPLET}:${SNAP}/usr/local/lib/
+
+parts:
+  podman:
+    plugin: go
+    source: https://github.com/containers/podman.git
+    source-tag: v4.4.4
+    source-depth: 1
+    build-snaps: &go ['go/1.20/stable']
+    override-build: |
+      make BUILDTAGS="seccomp apparmor selinux exclude_graphdriver_devicemapper"
+      install -d "$CRAFT_PART_INSTALL/bin"
+      install -T bin/podman "$CRAFT_PART_INSTALL/bin/podman"
+    build-packages:
+      - btrfs-progs
+      - git
+      - golang-go
+      - go-md2man
+      - iptables
+      - libassuan-dev
+      - libbtrfs-dev
+      - libc6-dev
+      - libglib2.0-dev
+      - libgpgme-dev
+      - libgpg-error-dev
+      - libprotobuf-dev
+      - libprotobuf-c-dev
+      - libseccomp-dev
+      - libselinux1-dev
+      - libsystemd-dev
+      - pkg-config
+    stage-packages:
+      - libassuan0
+      - libgpgme11
+
+  conmon:
+    plugin: make
+    source: https://github.com/containers/conmon.git
+    source-tag: v2.1.7
+    source-depth: 1
+    override-build: |
+      export GOCACHE="$(mktemp -d)"
+      make
+      install -d "$CRAFT_PART_INSTALL/bin"
+      install -T bin/conmon "$CRAFT_PART_INSTALL/bin/conmon"
+    build-snaps: *go
+
+  crun:
+    plugin: make
+    source: https://github.com/containers/crun.git
+    source-tag: 1.8.4
+    source-depth: 1
+    override-build: |
+      ./autogen.sh
+      ./configure
+      make 
+      install -d "$CRAFT_PART_INSTALL/bin"
+      install -T crun "$CRAFT_PART_INSTALL/bin/crun"
+    build-packages:
+      - autoconf
+      - automake
+      - git
+      - libcap-dev
+      - libseccomp-dev
+      - libtool
+      - libyajl-dev
+    stage-packages:
+      - libyajl2
+
+  #runc:
+  #  plugin: make
+  #  source: https://github.com/opencontainers/runc.git
+  #  source-tag: v1.1.4
+  #  source-depth: 1
+  #  override-build: |
+  #    make BUILDTAGS='seccomp apparmor selinux' COMMIT=
+  #    install -d "$CRAFT_PART_INSTALL/bin"
+  #    install -T runc "$CRAFT_PART_INSTALL/bin/runc"
+  #  build-snaps: *go
+  #  build-packages:
+  #    - libapparmor-dev
+  #    - libseccomp-dev
+
+  #shadow:
+  #  plugin: make
+  #  source: https://github.com/shadow-maint/shadow.git
+  #  source-tag: 4.13
+  #  source-depth: 1
+  #  override-build: |
+  #    ./autogen.sh --with-fcaps
+  #    make
+  #    make install DESTDIR="$CRAFT_PART_INSTALL"
+  #  build-packages:
+  #    - autoconf
+  #    - automake
+  #    - autopoint
+  #    - bison
+  #    - gettext
+  #    - libcap2-bin
+  #    - libsemanage-dev
+  #    - libtool
+  #    - xsltproc
+
+  netavark:
+    plugin: make
+    source: https://github.com/containers/netavark.git
+    source-tag: v1.6.0
+    source-depth: 1
+    override-build: |
+      make build
+      pushd docs
+      go-md2man -in netavark.1.md -out netavark.1
+      popd
+      make install DESTDIR="$CRAFT_PART_INSTALL"
+    build-packages:
+      - cargo
+      - git
+      - go-md2man
+      - libprotobuf-c-dev
+      - libsystemd-dev
+      - protobuf-compiler
+
+  aardvark-dns:
+    plugin: make
+    source: https://github.com/containers/aardvark-dns.git
+    source-tag: v1.6.0
+    source-depth: 1
+    override-build: |
+      make build
+      make install DESTDIR="$CRAFT_PART_INSTALL"
+    build-packages:
+      - cargo
