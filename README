@@ -1,0 +1,1 @@
+Copy config/* into /var/snap/podman/current/etc/containers/

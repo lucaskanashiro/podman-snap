@@ -19,27 +19,42 @@ layout:
   /var/cache/containers:
     bind: $SNAP_DATA/var/cache/containers
 
+plugs:
+  cli:
+    interface: docker
+
 apps:
   podman:
     command: bin/podman
-    environment:
-      LD_LIBRARY_PATH: ${SNAP}/lib/:${SNAP}/lib/${CRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib/:${SNAP}/usr/lib/${CRAFT_ARCH_TRIPLET}:${SNAP}/usr/local/lib/
+    plugs:
+      - cli
 
 parts:
+  wrapper-scripts:
+    plugin: dump
+    source: .
+    stage:
+      - bin/*
+      - patches/*
+    prime:
+      - -patches/*
+      - bin/*
+
   podman:
-    plugin: go
+    plugin: make
     source: https://github.com/containers/podman.git
     source-tag: v4.4.4
     source-depth: 1
     build-snaps: &go ['go/1.20/stable']
+    after: [wrapper-scripts]
     override-build: |
+      $CRAFT_STAGE/patches/patch.sh
       make BUILDTAGS="seccomp apparmor selinux exclude_graphdriver_devicemapper"
       install -d "$CRAFT_PART_INSTALL/bin"
-      install -T bin/podman "$CRAFT_PART_INSTALL/bin/podman"
+      install -T bin/podman "$CRAFT_PART_INSTALL/bin/podman-orig"
     build-packages:
       - btrfs-progs
       - git
-      - golang-go
       - go-md2man
       - iptables
       - libassuan-dev
@@ -80,7 +95,7 @@ parts:
       ./configure
       make 
       install -d "$CRAFT_PART_INSTALL/bin"
-      install -T crun "$CRAFT_PART_INSTALL/bin/crun"
+      install -T crun "$CRAFT_PART_INSTALL/bin/crun-orig"
     build-packages:
       - autoconf
       - automake

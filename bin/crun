@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+export SNAP="/snap/podman/current"
+export LD_LIBRARY_PATH="${SNAP}/lib/:${SNAP}/lib/x86_64-linux-gnu/:${SNAP}/usr/lib/:${SNAP}/usr/lib/x86_64-linux-gnu/:${SNAP}/usr/local/lib/"
+
+${SNAP}/bin/crun-orig "$@"
