@@ -1,1 +1,27 @@
 Copy config/* into /var/snap/podman/current/etc/containers/
+
+## apparmor issue
+
+From https://github.com/containers/common/blob/main/pkg/apparmor/apparmor_linux_template.go:
+
+```
+...
+
+{{if ge .Version 208096}}
+  # Allow signals from privileged profiles and from within the same profile
+  signal (receive) peer=unconfined,
+  signal (send,receive) peer={{.Name}},
+{{end}}
+
+...
+```
+
+Therefore:
+
+# cat > /etc/apparmor.d/local/containers-default-0.51.1 << __EOF__
+profile containers-default-0.51.1 flags=(attach_disconnected,mediate_deleted) {
+  signal (receive) peer=unconfined,
+  signal (send,receive) peer=containers-default-0.51.1,
+}
+__EOF__
+# apparmor_parser -K -r -T containers-default-0.51.1
