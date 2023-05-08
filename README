@@ -24,4 +24,4 @@ profile containers-default-0.51.1 flags=(attach_disconnected,mediate_deleted) {
   signal (send,receive) peer=containers-default-0.51.1,
 }
 __EOF__
-# apparmor_parser -K -r -T containers-default-0.51.1
+# apparmor_parser -K -r -T /etc/apparmor.d/local/containers-default-0.51.1
