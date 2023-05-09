@@ -1,17 +1,18 @@
 # Podman snap package (WIP)
 
-This repository contains a POC (Prof of Concept) of a snap package for Podman.
+This repository contains a PoC (Prof of Concept) of a snap package for Podman.
 Some Podman contributors already tried to kick that off but right now there is
-not working solution.
+no working solution.
 
-The scope of this POC at the moment is supporting only privileged mode. In order
-to support unprivileged mode we would need to run SUID binaries, such as the
-ones provided by `uidmap`, to create user namespaces and at the moment it seems
-to not be supported by snapd. It requires further investigation.
+The scope of this PoC at the moment is supporting only privileged mode
+containers. In order to support unprivileged mode containers we would
+need to run SUID binaries, such as the ones provided by `uidmap`, to
+create user namespaces, and at the moment this does not seem to be
+supported by snapd. It requires further investigation.
 
 ## Build
 
-In a Ubuntu systeam, you have to have installed the snapcraft snap package:
+In a Ubuntu system, you have to have installed the snapcraft snap package:
 
 ```
 $ sudo apt install snapd
@@ -33,8 +34,8 @@ At the end, you will have a `podman_*.snap` file.
 
 ## Testing
 
-In a Ubuntu virtual machine, you can install the generated `podman_*.snap` file
-running:
+In a Ubuntu virtual machine, you can install the generated
+`podman_*.snap` file by running:
 
 ```
 $ sudo snap install --devmode <path_to_snap_file>
