@@ -19,10 +19,6 @@ layout:
   /var/cache/containers:
     bind: $SNAP_DATA/var/cache/containers
 
-plugs:
-  cli:
-    interface: docker
-
 apps:
   podman:
     command: bin/podman
@@ -35,9 +31,7 @@ parts:
     source: .
     stage:
       - bin/*
-      - patches/*
     prime:
-      - -patches/*
       - bin/*
 
   podman:
@@ -48,10 +42,9 @@ parts:
     build-snaps: &go ['go/1.20/stable']
     after: [wrapper-scripts]
     override-build: |
-      $CRAFT_STAGE/patches/patch.sh
       make BUILDTAGS="seccomp apparmor selinux exclude_graphdriver_devicemapper"
       install -d "$CRAFT_PART_INSTALL/bin"
-      install -T bin/podman "$CRAFT_PART_INSTALL/bin/podman-orig"
+      install -T bin/podman "$CRAFT_PART_INSTALL/bin/podman"
     build-packages:
       - btrfs-progs
       - git
@@ -106,20 +99,6 @@ parts:
       - libyajl-dev
     stage-packages:
       - libyajl2
-
-  #runc:
-  #  plugin: make
-  #  source: https://github.com/opencontainers/runc.git
-  #  source-tag: v1.1.4
-  #  source-depth: 1
-  #  override-build: |
-  #    make BUILDTAGS='seccomp apparmor selinux' COMMIT=
-  #    install -d "$CRAFT_PART_INSTALL/bin"
-  #    install -T runc "$CRAFT_PART_INSTALL/bin/runc"
-  #  build-snaps: *go
-  #  build-packages:
-  #    - libapparmor-dev
-  #    - libseccomp-dev
 
   #shadow:
   #  plugin: make
